@@ -6,12 +6,28 @@ db_path = Path(__file__).parent / "providers.db"
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
-state = input("Enter a state (e.g., NY): ").strip().upper()
+state = input("Enter a state (optional): ").strip().upper()
+name = input("Enter a provider name (optional): ").strip()
+
+conditions = []
+params = []
 
 if state:
+    conditions.append("STATE = ?")
+    params.append(state)
+
+if name:
+    conditions.append(
+        "(FIRSTNAME LIKE ? OR LASTNAME LIKE ? OR BUSNAME LIKE ?)"
+    )
+    params.extend([f"%{name}%"] * 3)
+
+if conditions:
+    where_clause = " WHERE " + " AND ".join(conditions)
+
     cursor.execute(
-        "SELECT COUNT(*) FROM excluded_providers WHERE STATE = ?",
-        (state,)
+        "SELECT COUNT(*) FROM excluded_providers" + where_clause,
+        params
     )
     total = cursor.fetchone()[0]
 
@@ -19,21 +35,23 @@ if state:
         """
         SELECT FIRSTNAME, LASTNAME, BUSNAME, CITY, STATE, NPI
         FROM excluded_providers
-        WHERE STATE = ?
-        LIMIT 10
-        """,
-        (state,)
+        """
+        + where_clause + " LIMIT 10",
+        params
     )
 
     results = cursor.fetchall()
 
-    print(f"\nTotal records in {state}: {total}")
+    print("\nTotal matching records:", total)
     print("\nFirst 10 records:")
 
     for first, last, business, city, state, npi in results:
-        name = f"{first} {last}".strip() or business
-        print(f"{name} | {city}, {state} | NPI: {npi}")
+        provider_name = f"{first or ''} {last or ''}".strip()
+        provider_name = provider_name or business
+
+        print(f"{provider_name} | {city}, {state} | NPI: {npi}")
+
 else:
-    print("Please enter a state.")
+    print("Please enter a state or provider name.")
 
 conn.close()
