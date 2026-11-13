@@ -1,0 +1,20 @@
+{
+    "database": "providers.db",
+    "integrity": "ok",
+    "sources": {
+        "Federal": {
+            "total_records": 84093,
+            "missing_names": 0,
+            "missing_states": 0,
+            "missing_npi": 75169
+        },
+        "Georgia": {
+            "total_records": 1376,
+            "missing_names": 0,
+            "missing_states": 11,
+            "missing_npi": 1338
+        }
+    },
+    "total_records": 85469,
+    "passed": true
+}
